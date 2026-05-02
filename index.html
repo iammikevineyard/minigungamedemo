@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minigunner Prototype</title>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <div id="hud">
+      <div class="readout">
+        <span>WASD</span>
+        <strong>Move</strong>
+      </div>
+      <div class="readout">
+        <span>Mouse</span>
+        <strong>Look</strong>
+      </div>
+      <div class="readout">
+        <span>Hold</span>
+        <strong>Fire</strong>
+      </div>
+      <div class="readout">
+        <span>Wheel</span>
+        <strong>Zoom</strong>
+      </div>
+      <div class="readout">
+        <span>Wave</span>
+        <strong id="wave">1</strong>
+      </div>
+      <div class="readout">
+        <span>Kills</span>
+        <strong id="kills">0</strong>
+      </div>
+      <div class="readout">
+        <span>Camera</span>
+        <strong id="zoom">13m</strong>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

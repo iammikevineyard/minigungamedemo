@@ -1,0 +1,39 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.log
+
+# Node/web prototype outputs
+node_modules/
+dist/
+
+# Godot generated/import cache
+godot-demo/.godot/
+godot-demo/.import/
+godot-demo/export/
+godot-demo/exported/
+godot-demo/.mono/
+godot-demo/extension_api.json
+
+# Raw source/staging dumps that are not used directly by the Godot demo.
+godot-demo/assets/models/max_arnold/
+
+# Root-level upload/staging assets.
+# Canonical game assets should live under godot-demo/assets/.
+/*.zip
+/*.fbx
+/*.glb
+/*.mp3
+/*.wav
+/*.lnk
+/models/
+/audio/
+/screenshots/
+
+# Keep project docs/source files at root trackable.
+!README.md
+!package.json
+!package-lock.json
+!index.html

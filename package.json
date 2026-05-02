@@ -1,0 +1,19 @@
+{
+  "name": "rpg-demo-minigunner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "verify": "node scripts/verify.mjs",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "three": "latest"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1",
+    "vite": "latest"
+  }
+}

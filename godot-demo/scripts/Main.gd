@@ -83,9 +83,6 @@ const AK_START_AMMO := 240
 const LEADERBOARD_PATH := "user://leaderboard.json"
 const UI_MINIGUN_ICON := "res://assets/ui/minigun-barrel-icon.png"
 const UI_WEAPON_SHEET := "res://assets/ui/hud-concept-sheet.png"
-const UI_EXTRACT_REGION := Rect2(1158.0, 52.0, 492.0, 224.0)
-const UI_KILLS_REGION := Rect2(1290.0, 642.0, 346.0, 260.0)
-const UI_LEADERBOARD_REGION := Rect2(1290.0, 642.0, 346.0, 260.0)
 const UI_SHOTGUN_REGION := Rect2(368.0, 292.0, 302.0, 304.0)
 const UI_AK_REGION := Rect2(678.0, 292.0, 302.0, 304.0)
 const UI_KATANA_REGION := Rect2(990.0, 292.0, 302.0, 304.0)
@@ -208,9 +205,6 @@ var grenade_flash_nodes: Array = []
 var weapon_mode_label: Label
 var weapon_selector: HBoxContainer
 var weapon_cards: Array = []
-var kills_frame: TextureRect
-var extraction_frame: TextureRect
-var leaderboard_frame: TextureRect
 var extraction_panel: PanelContainer
 var leaderboard_panel: PanelContainer
 var status_panel: PanelContainer
@@ -1084,8 +1078,12 @@ func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 
-	kills_frame = _add_hud_image(layer, Vector2(14, 70), Vector2(356, 230), UI_KILLS_REGION, Color(1.0, 0.82, 0.38, 0.22))
-	status_panel = _add_hud_panel(layer, Vector2(22, 78), Vector2(340, 214), Color(0.0, 0.0, 0.0, 0.88), Color(1.0, 0.62, 0.08, 0.66), 2, 4)
+	status_panel = _add_hud_panel(layer, Vector2(22, 76), Vector2(340, 218), Color(0.0, 0.0, 0.0, 0.84), Color(1.0, 0.62, 0.08, 0.7), 2, 4)
+	_add_hud_line(layer, Vector2(42, 98), Vector2(150, 3), Color(1.0, 0.68, 0.12, 0.72))
+	_add_hud_line(layer, Vector2(216, 98), Vector2(82, 3), Color(1.0, 0.68, 0.12, 0.28))
+	_add_hud_line(layer, Vector2(42, 232), Vector2(272, 2), Color(1.0, 0.68, 0.12, 0.32))
+	_add_hud_line(layer, Vector2(332, 88), Vector2(18, 3), Color(1.0, 0.68, 0.12, 0.82))
+	_add_hud_line(layer, Vector2(332, 278), Vector2(18, 3), Color(1.0, 0.68, 0.12, 0.82))
 
 	var box := HBoxContainer.new()
 	box.position = Vector2(24, 832)
@@ -1110,8 +1108,12 @@ func _build_hud() -> void:
 
 	_build_weapon_selector(layer)
 
-	extraction_frame = _add_hud_image(layer, Vector2(560, 58), Vector2(520, 138), UI_EXTRACT_REGION, Color(0.72, 1.0, 0.46, 0.46))
-	extraction_panel = _add_hud_panel(layer, Vector2(588, 82), Vector2(464, 90), Color(0.0, 0.035, 0.0, 0.9), Color(0.46, 1.0, 0.2, 0.54), 2, 4)
+	extraction_panel = _add_hud_panel(layer, Vector2(556, 66), Vector2(528, 126), Color(0.0, 0.035, 0.0, 0.82), Color(0.46, 1.0, 0.2, 0.62), 2, 4)
+	_add_hud_line(layer, Vector2(584, 84), Vector2(102, 4), Color(0.46, 1.0, 0.18, 0.86))
+	_add_hud_line(layer, Vector2(958, 84), Vector2(96, 4), Color(0.46, 1.0, 0.18, 0.86))
+	_add_hud_line(layer, Vector2(584, 170), Vector2(470, 2), Color(0.46, 1.0, 0.18, 0.36))
+	_add_hud_line(layer, Vector2(574, 96), Vector2(3, 52), Color(0.46, 1.0, 0.18, 0.72))
+	_add_hud_line(layer, Vector2(1064, 96), Vector2(3, 52), Color(0.46, 1.0, 0.18, 0.72))
 
 	extraction_label = Label.new()
 	extraction_label.text = ""
@@ -1121,8 +1123,8 @@ func _build_hud() -> void:
 	extraction_label.add_theme_font_size_override("font_size", 25)
 	extraction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	extraction_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	extraction_label.position = Vector2(592, 84)
-	extraction_label.size = Vector2(456, 86)
+	extraction_label.position = Vector2(590, 82)
+	extraction_label.size = Vector2(460, 90)
 	layer.add_child(extraction_label)
 
 	kills_giant_label = Label.new()
@@ -1156,8 +1158,10 @@ func _build_hud() -> void:
 	multikill_label.modulate.a = 0.0
 	layer.add_child(multikill_label)
 
-	leaderboard_frame = _add_hud_image(layer, Vector2(1292, 72), Vector2(288, 224), UI_LEADERBOARD_REGION, Color(1.0, 0.82, 0.42, 0.22))
-	leaderboard_panel = _add_hud_panel(layer, Vector2(1302, 82), Vector2(266, 204), Color(0.0, 0.0, 0.0, 0.88), Color(1.0, 0.64, 0.12, 0.58), 2, 4)
+	leaderboard_panel = _add_hud_panel(layer, Vector2(1294, 82), Vector2(282, 214), Color(0.0, 0.0, 0.0, 0.84), Color(1.0, 0.64, 0.12, 0.64), 2, 4)
+	_add_hud_line(layer, Vector2(1314, 106), Vector2(120, 3), Color(1.0, 0.68, 0.14, 0.64))
+	_add_hud_line(layer, Vector2(1454, 106), Vector2(84, 3), Color(1.0, 0.68, 0.14, 0.28))
+	_add_hud_line(layer, Vector2(1314, 274), Vector2(224, 2), Color(1.0, 0.68, 0.14, 0.28))
 
 	leaderboard_label = Label.new()
 	leaderboard_label.text = ""
@@ -1165,8 +1169,8 @@ func _build_hud() -> void:
 	leaderboard_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0))
 	leaderboard_label.add_theme_constant_override("outline_size", 5)
 	leaderboard_label.add_theme_font_size_override("font_size", 18)
-	leaderboard_label.position = Vector2(1322, 92)
-	leaderboard_label.size = Vector2(234, 178)
+	leaderboard_label.position = Vector2(1320, 104)
+	leaderboard_label.size = Vector2(238, 168)
 	layer.add_child(leaderboard_label)
 
 	# Health bar
@@ -1273,23 +1277,10 @@ func _build_hud() -> void:
 	_refresh_leaderboard_label()
 
 
-func _add_hud_image(layer: CanvasLayer, pos: Vector2, image_size: Vector2, region: Rect2, tint: Color = Color.WHITE) -> TextureRect:
-	var rect := TextureRect.new()
-	rect.position = pos
-	rect.size = image_size
-	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	rect.stretch_mode = TextureRect.STRETCH_SCALE
-	rect.texture = _atlas_texture(region)
-	rect.modulate = tint
-	layer.add_child(rect)
-	return rect
-
-
-func _add_hud_scrim(layer: CanvasLayer, pos: Vector2, scrim_size: Vector2, color: Color) -> ColorRect:
+func _add_hud_line(layer: CanvasLayer, pos: Vector2, line_size: Vector2, color: Color) -> ColorRect:
 	var rect := ColorRect.new()
 	rect.position = pos
-	rect.size = scrim_size
+	rect.size = line_size
 	rect.color = color
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(rect)

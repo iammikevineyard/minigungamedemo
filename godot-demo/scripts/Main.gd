@@ -81,6 +81,11 @@ const MINIGUN_START_AMMO := 1200
 const SHOTGUN_START_AMMO := 36
 const AK_START_AMMO := 240
 const LEADERBOARD_PATH := "user://leaderboard.json"
+const UI_MINIGUN_ICON := "res://assets/ui/minigun-barrel-icon.png"
+const UI_WEAPON_SHEET := "res://assets/ui/hud-concept-sheet.png"
+const UI_SHOTGUN_REGION := Rect2(368.0, 292.0, 302.0, 304.0)
+const UI_AK_REGION := Rect2(678.0, 292.0, 302.0, 304.0)
+const UI_KATANA_REGION := Rect2(990.0, 292.0, 302.0, 304.0)
 const EXTRACTION_UNLOCK_WAVE := 5
 const EXTRACTION_UNLOCK_KILLS := 250
 const EXTRACTION_HOLD_TIME := 25.0
@@ -197,6 +202,11 @@ var health_bar_label: Label
 var damage_vignette: ColorRect
 var grenade_flash_nodes: Array = []
 var weapon_mode_label: Label
+var weapon_selector: HBoxContainer
+var weapon_cards: Array = []
+var extraction_panel: PanelContainer
+var leaderboard_panel: PanelContainer
+var status_panel: PanelContainer
 var pause_overlay: ColorRect
 var pause_label: Label
 var leaderboard_label: Label
@@ -1066,9 +1076,12 @@ func _build_audio() -> void:
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+
+	status_panel = _add_hud_panel(layer, Vector2(28, 22), Vector2(334, 218), Color(0.025, 0.026, 0.025, 0.62), Color(1.0, 0.67, 0.18, 0.38))
+
 	var box := HBoxContainer.new()
-	box.position = Vector2(18, 820)
-	box.add_theme_constant_override("separation", 8)
+	box.position = Vector2(24, 832)
+	box.add_theme_constant_override("separation", 10)
 	layer.add_child(box)
 
 	_add_hud_label(box, "WASD\nMove")
@@ -1076,21 +1089,20 @@ func _build_hud() -> void:
 	_add_hud_label(box, "Hold\nFire")
 	_add_hud_label(box, "RClick\nGrenade")
 	_add_hud_label(box, "Wheel\nZoom")
-	wave_label = _add_hud_label(box, "Wave\n1")
-	kills_label = _add_hud_label(box, "Kills\n0")
-	zoom_label = _add_hud_label(box, "Camera\n17m")
-	spin_label = _add_hud_label(box, "Spin\n0%")
-	zombie_label = _add_hud_label(box, "Zombies\n0")
 
-	weapon_mode_label = Label.new()
-	weapon_mode_label.text = ""
-	weapon_mode_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.66))
-	weapon_mode_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0))
-	weapon_mode_label.add_theme_constant_override("outline_size", 6)
-	weapon_mode_label.add_theme_font_size_override("font_size", 19)
-	weapon_mode_label.position = Vector2(40, 236)
-	weapon_mode_label.size = Vector2(460, 130)
-	layer.add_child(weapon_mode_label)
+	var stats_box := HBoxContainer.new()
+	stats_box.position = Vector2(42, 238)
+	stats_box.add_theme_constant_override("separation", 6)
+	layer.add_child(stats_box)
+	wave_label = _add_hud_label(stats_box, "Wave\n1")
+	kills_label = _add_hud_label(stats_box, "Kills\n0")
+	zoom_label = _add_hud_label(stats_box, "Camera\n17m")
+	spin_label = _add_hud_label(stats_box, "Spin\n0%")
+	zombie_label = _add_hud_label(stats_box, "Zombies\n0")
+
+	_build_weapon_selector(layer)
+
+	extraction_panel = _add_hud_panel(layer, Vector2(560, 34), Vector2(800, 104), Color(0.02, 0.06, 0.03, 0.38), Color(0.52, 1.0, 0.24, 0.34))
 
 	extraction_label = Label.new()
 	extraction_label.text = ""
@@ -1133,6 +1145,8 @@ func _build_hud() -> void:
 	multikill_label.size = Vector2(720, 120)
 	multikill_label.modulate.a = 0.0
 	layer.add_child(multikill_label)
+
+	leaderboard_panel = _add_hud_panel(layer, Vector2(1326, 36), Vector2(248, 206), Color(0.028, 0.026, 0.022, 0.58), Color(1.0, 0.74, 0.24, 0.34))
 
 	leaderboard_label = Label.new()
 	leaderboard_label.text = ""
@@ -1246,6 +1260,203 @@ func _build_hud() -> void:
 	layer.add_child(pause_label)
 
 	_refresh_leaderboard_label()
+
+
+func _add_hud_panel(layer: CanvasLayer, pos: Vector2, panel_size: Vector2, bg: Color, border: Color) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.position = pos
+	panel.size = panel_size
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_theme_stylebox_override("panel", _hud_panel_style(bg, border, 2, 6))
+	layer.add_child(panel)
+	return panel
+
+
+func _hud_panel_style(bg: Color, border: Color, border_width: int = 2, radius: int = 6) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.border_width_left = border_width
+	style.border_width_top = border_width
+	style.border_width_right = border_width
+	style.border_width_bottom = border_width
+	style.corner_radius_top_left = radius
+	style.corner_radius_top_right = radius
+	style.corner_radius_bottom_left = radius
+	style.corner_radius_bottom_right = radius
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.42)
+	style.shadow_size = 8
+	return style
+
+
+func _build_weapon_selector(layer: CanvasLayer) -> void:
+	weapon_cards.clear()
+	weapon_selector = HBoxContainer.new()
+	weapon_selector.position = Vector2(440, 748)
+	weapon_selector.add_theme_constant_override("separation", 8)
+	weapon_selector.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(weapon_selector)
+
+	weapon_cards.append(_make_weapon_card(weapon_selector, 1, "MINIGUN", MINIGUN_START_AMMO, UI_MINIGUN_ICON, Rect2()))
+	weapon_cards.append(_make_weapon_card(weapon_selector, 2, "SHOTGUN", SHOTGUN_START_AMMO, "", UI_SHOTGUN_REGION))
+	weapon_cards.append(_make_weapon_card(weapon_selector, 3, "AK", AK_START_AMMO, "", UI_AK_REGION))
+	weapon_cards.append(_make_weapon_card(weapon_selector, 4, "KATANA", 0, "", UI_KATANA_REGION))
+
+
+func _make_weapon_card(parent: Control, slot: int, title: String, max_ammo: int, texture_path: String, atlas_region: Rect2) -> Dictionary:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(176, 104)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_theme_stylebox_override("panel", _hud_panel_style(Color(0.024, 0.024, 0.022, 0.76), Color(0.52, 0.48, 0.42, 0.58), 2, 5))
+	parent.add_child(panel)
+
+	var root := Control.new()
+	root.custom_minimum_size = Vector2(176, 104)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(root)
+
+	var key := Label.new()
+	key.text = "%d" % slot
+	key.position = Vector2(10, 5)
+	key.size = Vector2(28, 28)
+	key.add_theme_color_override("font_color", Color(1.0, 0.84, 0.48))
+	key.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0))
+	key.add_theme_constant_override("outline_size", 4)
+	key.add_theme_font_size_override("font_size", 24)
+	root.add_child(key)
+
+	var icon := TextureRect.new()
+	icon.position = Vector2(12, 30)
+	icon.size = Vector2(74, 54)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if texture_path != "":
+		icon.texture = load(texture_path) as Texture2D
+	else:
+		icon.texture = _atlas_texture(atlas_region)
+	root.add_child(icon)
+
+	var name_label := Label.new()
+	name_label.text = title
+	name_label.position = Vector2(92, 10)
+	name_label.size = Vector2(76, 24)
+	name_label.add_theme_color_override("font_color", Color(0.94, 0.88, 0.72))
+	name_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0))
+	name_label.add_theme_constant_override("outline_size", 3)
+	name_label.add_theme_font_size_override("font_size", 14)
+	root.add_child(name_label)
+
+	var ammo_label := Label.new()
+	ammo_label.text = ""
+	ammo_label.position = Vector2(92, 34)
+	ammo_label.size = Vector2(78, 22)
+	ammo_label.add_theme_color_override("font_color", Color(1.0, 0.68, 0.12))
+	ammo_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0))
+	ammo_label.add_theme_constant_override("outline_size", 3)
+	ammo_label.add_theme_font_size_override("font_size", 18)
+	root.add_child(ammo_label)
+
+	var status_label := Label.new()
+	status_label.text = ""
+	status_label.position = Vector2(92, 58)
+	status_label.size = Vector2(78, 18)
+	status_label.add_theme_color_override("font_color", Color(0.72, 0.78, 0.78))
+	status_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0))
+	status_label.add_theme_constant_override("outline_size", 2)
+	status_label.add_theme_font_size_override("font_size", 11)
+	root.add_child(status_label)
+
+	var bar_back := ColorRect.new()
+	bar_back.position = Vector2(12, 88)
+	bar_back.size = Vector2(152, 8)
+	bar_back.color = Color(0.12, 0.11, 0.095, 0.92)
+	root.add_child(bar_back)
+
+	var bar_fill := ColorRect.new()
+	bar_fill.position = Vector2(12, 88)
+	bar_fill.size = Vector2(152, 8)
+	bar_fill.color = Color(1.0, 0.62, 0.08, 0.95)
+	root.add_child(bar_fill)
+
+	return {
+		"slot": slot,
+		"max_ammo": max_ammo,
+		"panel": panel,
+		"icon": icon,
+		"key": key,
+		"name": name_label,
+		"ammo": ammo_label,
+		"status": status_label,
+		"bar": bar_fill
+	}
+
+
+func _atlas_texture(region: Rect2) -> AtlasTexture:
+	var tex := AtlasTexture.new()
+	tex.atlas = load(UI_WEAPON_SHEET) as Texture2D
+	tex.region = region
+	return tex
+
+
+func _update_weapon_cards() -> void:
+	for card in weapon_cards:
+		var slot := int(card["slot"])
+		var ammo := 0
+		var max_ammo := int(card["max_ammo"])
+		var status := ""
+		match slot:
+			1:
+				ammo = minigun_ammo
+				status = "SPIN %d%%" % int(round(spin * 100))
+			2:
+				ammo = shotgun_ammo
+				status = "READY" if shotgun_cooldown_remaining <= 0.0 else "%.1fs" % shotgun_cooldown_remaining
+			3:
+				ammo = ak_ammo
+				status = "AUTO"
+			4:
+				ammo = 0
+				status = "READY" if katana_cooldown_remaining <= 0.0 else "%.1fs" % katana_cooldown_remaining
+		_update_weapon_card(card, slot == active_weapon, ammo, max_ammo, status)
+
+
+func _update_weapon_card(card: Dictionary, active: bool, ammo: int, max_ammo: int, status: String) -> void:
+	var panel := card["panel"] as PanelContainer
+	var ammo_label := card["ammo"] as Label
+	var status_label := card["status"] as Label
+	var key_label := card["key"] as Label
+	var name_label := card["name"] as Label
+	var bar_fill := card["bar"] as ColorRect
+	var icon := card["icon"] as TextureRect
+
+	var empty := max_ammo > 0 and ammo <= 0
+	var border := Color(1.0, 0.62, 0.08, 0.96) if active else Color(0.52, 0.48, 0.42, 0.58)
+	var bg := Color(0.08, 0.062, 0.025, 0.88) if active else Color(0.024, 0.024, 0.022, 0.76)
+	if empty:
+		border = Color(0.86, 0.1, 0.06, 0.88)
+	panel.add_theme_stylebox_override("panel", _hud_panel_style(bg, border, 3 if active else 2, 5))
+
+	if max_ammo > 0:
+		ammo_label.text = "%d/%d" % [ammo, max_ammo]
+		var ratio: float = clampf(float(ammo) / float(max_ammo), 0.0, 1.0)
+		bar_fill.size.x = 152.0 * ratio
+		if empty:
+			bar_fill.color = Color(0.82, 0.08, 0.04, 0.95)
+		elif ratio < 0.25:
+			bar_fill.color = Color(1.0, 0.24, 0.08, 0.95)
+		else:
+			bar_fill.color = Color(1.0, 0.62, 0.08, 0.95)
+	else:
+		ammo_label.text = "--"
+		bar_fill.size.x = 152.0
+		bar_fill.color = Color(0.95, 0.72, 0.18, 0.75)
+
+	status_label.text = status
+	status_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.24) if active else Color(0.72, 0.78, 0.78))
+	key_label.add_theme_color_override("font_color", Color(1.0, 0.88, 0.52) if active else Color(0.8, 0.72, 0.55))
+	name_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.72) if active else Color(0.82, 0.78, 0.68))
+	icon.modulate = Color(1.18, 1.1, 0.92, 1.0) if active else Color(0.78, 0.78, 0.74, 0.9)
 
 
 func _start_firing() -> void:
@@ -2913,18 +3124,7 @@ func _update_hud() -> void:
 	zoom_label.text = "Camera\n%dm" % int(round(target_camera_distance))
 	spin_label.text = "Spin\n%d%%" % int(round(spin * 100))
 	zombie_label.text = "Zombies\n%d" % _active_zombie_count()
-	if weapon_mode_label:
-		var shotgun_ready := "READY" if shotgun_cooldown_remaining <= 0.0 else "%.1fs" % shotgun_cooldown_remaining
-		var katana_ready := "READY" if katana_cooldown_remaining <= 0.0 else "%.1fs" % katana_cooldown_remaining
-		weapon_mode_label.text = "[1] MINIGUN %s %d\n[2] SHOTGUN %s %d\n[3] AK %s %d\n[4] KATANA %s" % [
-			"<" if active_weapon == 1 else " ",
-			minigun_ammo,
-			("< " + shotgun_ready) if active_weapon == 2 else shotgun_ready,
-			shotgun_ammo,
-			"<" if active_weapon == 3 else " ",
-			ak_ammo,
-			("< " + katana_ready) if active_weapon == 4 else katana_ready
-		]
+	_update_weapon_cards()
 	if kills_giant_label:
 		kills_giant_label.text = "%d" % kills
 		var pulse_scale: float = 1.0 + kills_pulse * 0.12

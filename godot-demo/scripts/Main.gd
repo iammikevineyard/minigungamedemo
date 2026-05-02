@@ -1084,8 +1084,8 @@ func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 
-	kills_frame = _add_hud_image(layer, Vector2(20, 68), Vector2(348, 224), UI_KILLS_REGION, Color(1.0, 0.86, 0.58, 0.86))
-	_add_hud_scrim(layer, Vector2(34, 88), Vector2(318, 182), Color(0.0, 0.0, 0.0, 0.72))
+	kills_frame = _add_hud_image(layer, Vector2(14, 70), Vector2(356, 230), UI_KILLS_REGION, Color(1.0, 0.82, 0.38, 0.22))
+	status_panel = _add_hud_panel(layer, Vector2(22, 78), Vector2(340, 214), Color(0.0, 0.0, 0.0, 0.88), Color(1.0, 0.62, 0.08, 0.66), 2, 4)
 
 	var box := HBoxContainer.new()
 	box.position = Vector2(24, 832)
@@ -1110,8 +1110,8 @@ func _build_hud() -> void:
 
 	_build_weapon_selector(layer)
 
-	extraction_frame = _add_hud_image(layer, Vector2(560, 58), Vector2(520, 138), UI_EXTRACT_REGION, Color(0.72, 1.0, 0.46, 0.88))
-	_add_hud_scrim(layer, Vector2(606, 90), Vector2(428, 72), Color(0.0, 0.04, 0.0, 0.68))
+	extraction_frame = _add_hud_image(layer, Vector2(560, 58), Vector2(520, 138), UI_EXTRACT_REGION, Color(0.72, 1.0, 0.46, 0.46))
+	extraction_panel = _add_hud_panel(layer, Vector2(588, 82), Vector2(464, 90), Color(0.0, 0.035, 0.0, 0.9), Color(0.46, 1.0, 0.2, 0.54), 2, 4)
 
 	extraction_label = Label.new()
 	extraction_label.text = ""
@@ -1156,8 +1156,8 @@ func _build_hud() -> void:
 	multikill_label.modulate.a = 0.0
 	layer.add_child(multikill_label)
 
-	leaderboard_frame = _add_hud_image(layer, Vector2(1294, 72), Vector2(286, 224), UI_LEADERBOARD_REGION, Color(1.0, 0.82, 0.42, 0.88))
-	_add_hud_scrim(layer, Vector2(1308, 84), Vector2(258, 198), Color(0.0, 0.0, 0.0, 0.72))
+	leaderboard_frame = _add_hud_image(layer, Vector2(1292, 72), Vector2(288, 224), UI_LEADERBOARD_REGION, Color(1.0, 0.82, 0.42, 0.22))
+	leaderboard_panel = _add_hud_panel(layer, Vector2(1302, 82), Vector2(266, 204), Color(0.0, 0.0, 0.0, 0.88), Color(1.0, 0.64, 0.12, 0.58), 2, 4)
 
 	leaderboard_label = Label.new()
 	leaderboard_label.text = ""
@@ -1296,12 +1296,12 @@ func _add_hud_scrim(layer: CanvasLayer, pos: Vector2, scrim_size: Vector2, color
 	return rect
 
 
-func _add_hud_panel(layer: CanvasLayer, pos: Vector2, panel_size: Vector2, bg: Color, border: Color) -> PanelContainer:
+func _add_hud_panel(layer: CanvasLayer, pos: Vector2, panel_size: Vector2, bg: Color, border: Color, border_width: int = 2, radius: int = 6) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.position = pos
 	panel.size = panel_size
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_theme_stylebox_override("panel", _hud_panel_style(bg, border, 2, 6))
+	panel.add_theme_stylebox_override("panel", _hud_panel_style(bg, border, border_width, radius))
 	layer.add_child(panel)
 	return panel
 
